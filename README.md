@@ -11,32 +11,41 @@ js/puzzles.js           מאגר החידות
 js/fx.js                צלילים, קונפטי, אפקט מגע
 js/board.js             טבלת מובילים (Claude / Cloudflare / מקומי)
 js/app.js               לוגיקת המשחק
-functions/api/scores.js API של טבלת המובילים (Cloudflare Pages Function)
+functions/api/scores.js API של טבלת המובילים (Cloudflare Pages Function + D1)
 ```
 
 אין שלב build. אפשר לפתוח את `index.html` ישירות בדפדפן, ואז הכל עובד חוץ מטבלת המובילים, וההתקדמות נשמרת במכשיר.
 
-## העלאה ל-Cloudflare Pages
+## העלאה ל-Cloudflare Pages (משחק ציבורי + טבלת מובילים)
 
-1. ב-Cloudflare: Workers & Pages → Create → Pages → Connect to Git → בוחרים את `jeniaka/trivia`.
-2. Framework preset: **None**. Build command: ריק. Build output directory: `/`.
-3. Deploy. המשחק עולה מיד.
+### 1. מסד נתונים לטבלה (פעם אחת)
+Storage & Databases → D1 SQL Database → Create → שם: `trivia`.
+לא צריך ליצור טבלאות. הקוד יוצר אותן לבד בבקשה הראשונה.
 
-### הפעלת טבלת המובילים (פעם אחת)
+### 2. פרויקט Pages
+Workers & Pages → Create → Pages → Connect to Git → `jeniaka/trivia`.
+- Framework preset: **None**
+- Build command: ריק
+- Build output directory: `/`
 
-1. Workers & Pages → KV → Create namespace, למשל בשם `trivia-scores`.
-2. בפרויקט ה-Pages: Settings → Bindings → Add → KV namespace.
-   - Variable name: **`SCORES`**
-   - KV namespace: `trivia-scores`
-3. לעשות Redeploy (Deployments → ⋯ → Retry deployment).
+### 3. חיבור המסד לפרויקט
+בפרויקט: Settings → Bindings → Add → **D1 database**
+- Variable name: **`DB`**
+- D1 database: `trivia`
 
-בלי החיבור הזה ה-API מחזיר 503, והמשחק מציג "טבלת המובילים עוד לא הוגדרה".
+ואז Deployments → ⋯ → **Retry deployment**, כדי שהחיבור ייכנס לתוקף.
+
+בלי החיבור ה-API מחזיר 503, והמשחק מציג "טבלת המובילים עוד לא הוגדרה".
 
 ## איך טבלת המובילים עובדת
 
-- **באתר:** כל דפדפן מקבל מזהה אקראי שנשמר אצלו. השרת שומר רק hash שלו, כך שאף אחד לא יכול לדרוס תוצאה של מישהו אחר. השחקן בוחר שם לטבלה.
+- **ציבורית ומשותפת:** כל מי שנכנס לאתר רואה את אותה טבלה. לא צריך הרשמה.
+- **זהות:** כל דפדפן מקבל מזהה אקראי שנשמר אצלו. השרת שומר רק hash שלו, כך שאף אחד לא יכול לדרוס תוצאה של מישהו אחר. השחקן בוחר שם לטבלה.
+- **שיאים לא נמחקים:** השרת שומר לכל שחקן את השיא הגבוה ביותר שלו. איפוס התקדמות במשחק לא מוחק ולא מוריד את השיא מהטבלה.
+- **גיבוי:** ל-D1 יש Time Travel, שחזור לכל נקודה ב-7 הימים האחרונים בתוכנית החינמית.
+- **מכסות חינמיות:** 100,000 כתיבות ו-5 מיליון שורות קריאה ביום. כל תשובה נכונה היא כתיבה אחת, והטבלה נשמרת במטמון של 15 שניות.
 - **בתוך Claude (artifact):** הטבלה נשמרת במאגר הנתונים המשותף של Claude, לפי המשתמש המחובר.
-- איפוס התקדמות מוריד את השחקן מהטבלה.
+- **ב-GitHub Pages** אין שרת, ולכן שם המשחק עובד בלי טבלת מובילים.
 
 ## הוספת חידות
 

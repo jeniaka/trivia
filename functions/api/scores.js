@@ -1,21 +1,45 @@
 /**
- * Cloudflare Pages Function: טבלת המובילים
+ * Cloudflare Pages Function: טבלת המובילים הציבורית
  *
  * GET  /api/scores  → 100 המובילים
- * POST /api/scores  → עדכון התוצאה של שחקן { id, nick, score, solved, best }
+ * POST /api/scores  → עדכון שחקן { id, nick, score, solved, best }
  *
- * דורש KV namespace שמחובר לפרויקט בשם SCORES
- * (Pages → Settings → Bindings → KV namespace → Variable name: SCORES).
- * בלי החיבור הזה ה-API מחזיר 503 והמשחק עובד במצב מקומי.
+ * אחסון: Cloudflare D1, מחובר לפרויקט בשם DB
+ * (Pages → Settings → Bindings → D1 database → Variable name: DB).
+ * הטבלה נוצרת אוטומטית בבקשה הראשונה.
+ *
+ * הטבלה שומרת לכל שחקן את השיא שלו: ניקוד נמוך יותר (למשל אחרי איפוס
+ * התקדמות) לא מוחק ולא מוריד את מה שכבר הושג.
  */
 
 const TOTAL_Q = 100;
 const MAX_SCORE = 3200;   // 2000 נקודות בסיס + בונוס רצף מקסימלי
 const MAX_BODY = 2048;
+const CACHE_SECONDS = 15;
 
-const json = (obj, status = 200) => new Response(JSON.stringify(obj), {
+const SCHEMA = [
+  `CREATE TABLE IF NOT EXISTS scores (
+     k       TEXT PRIMARY KEY,
+     nick    TEXT    NOT NULL DEFAULT '',
+     score   INTEGER NOT NULL DEFAULT 0,
+     solved  INTEGER NOT NULL DEFAULT 0,
+     best    INTEGER NOT NULL DEFAULT 0,
+     created INTEGER NOT NULL DEFAULT 0,
+     updated INTEGER NOT NULL DEFAULT 0
+   )`,
+  `CREATE INDEX IF NOT EXISTS idx_scores_board ON scores (score DESC, solved DESC, updated ASC)`
+];
+
+let schemaReady = false;
+async function ensureSchema(db) {
+  if (schemaReady) return;
+  await db.batch(SCHEMA.map(sql => db.prepare(sql)));
+  schemaReady = true;
+}
+
+const json = (obj, status = 200, extra) => new Response(JSON.stringify(obj), {
   status,
-  headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
+  headers: Object.assign({ 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }, extra || {})
 });
 
 const int = (x, max) => {
@@ -32,24 +56,38 @@ async function publicKey(id) {
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 24);
 }
 
-export async function onRequestGet({ env }) {
-  if (!env.SCORES) return json({ ok: false, error: 'not_configured' }, 503);
-  const rows = [];
-  let cursor;
-  do {
-    const page = await env.SCORES.list({ prefix: 'p:', cursor, limit: 1000 });
-    for (const key of page.keys) {
-      const m = key.metadata || {};
-      rows.push({ k: key.name.slice(2), nick: cleanNick(m.n), score: int(m.s, MAX_SCORE), solved: int(m.c, TOTAL_Q) });
-    }
-    cursor = page.list_complete ? null : page.cursor;
-  } while (cursor && rows.length < 10000);
-  rows.sort((a, b) => b.score - a.score || b.solved - a.solved);
-  return json({ ok: true, total: rows.length, rows: rows.filter(r => r.score > 0).slice(0, 100) });
+const edgeCache = () => (typeof caches !== 'undefined' && caches.default) ? caches.default : null;
+const cacheKey = request => new Request(new URL('/api/scores?board=1', request.url).toString());
+
+export async function onRequestGet({ request, env, waitUntil }) {
+  if (!env.DB) return json({ ok: false, error: 'not_configured' }, 503);
+
+  const cache = edgeCache();
+  if (cache) {
+    const hit = await cache.match(cacheKey(request));
+    if (hit) return hit;
+  }
+
+  try {
+    await ensureSchema(env.DB);
+    const { results } = await env.DB
+      .prepare('SELECT k, nick, score, solved FROM scores WHERE score > 0 ORDER BY score DESC, solved DESC, updated ASC LIMIT 100')
+      .all();
+    const total = await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE score > 0').first('n');
+    const res = json(
+      { ok: true, total: Number(total) || 0, rows: (results || []).map(r => ({ k: r.k, nick: cleanNick(r.nick), score: int(r.score, MAX_SCORE), solved: int(r.solved, TOTAL_Q) })) },
+      200,
+      { 'cache-control': 'public, max-age=0, s-maxage=' + CACHE_SECONDS }
+    );
+    if (cache && waitUntil) waitUntil(cache.put(cacheKey(request), res.clone()));
+    return res;
+  } catch (e) {
+    return json({ ok: false, error: 'db_error' }, 500);
+  }
 }
 
-export async function onRequestPost({ request, env }) {
-  if (!env.SCORES) return json({ ok: false, error: 'not_configured' }, 503);
+export async function onRequestPost({ request, env, waitUntil }) {
+  if (!env.DB) return json({ ok: false, error: 'not_configured' }, 503);
   const len = Number(request.headers.get('content-length') || 0);
   if (len > MAX_BODY) return json({ ok: false, error: 'too_large' }, 413);
 
@@ -67,19 +105,34 @@ export async function onRequestPost({ request, env }) {
   if (!/^[a-f0-9]{32}$/.test(id)) return json({ ok: false, error: 'bad_id' }, 400);
 
   const k = await publicKey(id);
-  const meta = {
-    n: cleanNick(body.nick),
-    s: int(body.score, MAX_SCORE),
-    c: int(body.solved, TOTAL_Q),
-    b: int(body.best, 1000),
-    t: Date.now()
-  };
+  const nick = cleanNick(body.nick);
+  const score = int(body.score, MAX_SCORE);
+  const solved = int(body.solved, TOTAL_Q);
+  const best = int(body.best, 1000);
+  const now = Date.now();
 
-  // ניקוד 0 (למשל אחרי איפוס) מוריד את השחקן מהטבלה
-  if (meta.s === 0) {
-    await env.SCORES.delete('p:' + k);
-    return json({ ok: true, k, removed: true });
+  try {
+    await ensureSchema(env.DB);
+    if (score === 0) {
+      // אין מה להוסיף לטבלה; רק עדכון שם אם השחקן כבר קיים בה
+      await env.DB.prepare('UPDATE scores SET nick = ?2, updated = ?3 WHERE k = ?1 AND nick <> ?2').bind(k, nick, now).run();
+    } else {
+      await env.DB.prepare(
+        `INSERT INTO scores (k, nick, score, solved, best, created, updated)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?6)
+         ON CONFLICT(k) DO UPDATE SET
+           nick    = excluded.nick,
+           score   = MAX(scores.score, excluded.score),
+           solved  = MAX(scores.solved, excluded.solved),
+           best    = MAX(scores.best, excluded.best),
+           updated = CASE WHEN excluded.score > scores.score OR excluded.nick <> scores.nick THEN excluded.updated ELSE scores.updated END`
+      ).bind(k, nick, score, solved, best, now).run();
+    }
+    const row = await env.DB.prepare('SELECT nick, score, solved FROM scores WHERE k = ?1').bind(k).first();
+    const cache = edgeCache();
+    if (cache && waitUntil) waitUntil(cache.delete(cacheKey(request)));
+    return json({ ok: true, k, record: row ? { nick: row.nick, score: row.score, solved: row.solved } : null });
+  } catch (e) {
+    return json({ ok: false, error: 'db_error' }, 500);
   }
-  await env.SCORES.put('p:' + k, '1', { metadata: meta });
-  return json({ ok: true, k });
 }

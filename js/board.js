@@ -1,7 +1,7 @@
 /* =========================================================
    טבלת מובילים: שכבת חיבור לשרת
    • בתוך Claude (artifact): מאגר הנתונים המשותף של Claude
-   • באתר (Cloudflare Pages): ‎/api/scores עם Workers KV
+   • באתר (Cloudflare Pages): ‎/api/scores עם Cloudflare D1
    • קובץ מקומי או שרת בלי API: מצב לא מקוון, הכל נשמר במכשיר
    ========================================================= */
 const Board = (() => {
@@ -14,9 +14,14 @@ const Board = (() => {
     signedIn: true,
     rows: [],             // {k, nick, score, solved}
     names: {},
-    myKey: null
+    myKey: null,
+    record: { score: 0, solved: 0 }   // השיא שלי בטבלה (לא נמחק באיפוס)
   };
-  let hooks = { getState: () => null, mergeRemote: () => false, onChange: () => {} };
+  const bumpRecord = (score, solved) => {
+    S.record.score = Math.max(S.record.score, num(score, 5000));
+    S.record.solved = Math.max(S.record.solved, num(solved, TOTAL_Q));
+  };
+  let hooks = { getState: () => null, mergeRemote: () => false, onChange: () => {}, isHome: () => true };
 
   const num = (x, max) => { x = Math.floor(Number(x)); return Number.isFinite(x) && x > 0 ? Math.min(x, max || 1e9) : 0; };
   const cleanNick = s => typeof s === 'string' ? s.replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 20) : '';
@@ -27,10 +32,15 @@ const Board = (() => {
   let cWriting = false, cDirty = false, cRetries = 0;
 
   function claudeDoc(st) {
+    bumpRecord(st.score, st.solved.length);
     return {
-      nick: st.nick, score: st.score, solvedCount: st.solved.length,
-      best: st.best, streak: st.streak, solved: st.solved, attempted: st.attempted,
-      correct: st.correct, wrong: st.wrong, hints: st.hints, hardNoHint: st.hardNoHint,
+      nick: st.nick,
+      score: S.record.score,              // שיא לטבלה
+      solvedCount: S.record.solved,
+      progress: {                         // ההתקדמות הנוכחית (מתאפסת באיפוס)
+        score: st.score, best: st.best, streak: st.streak, solved: st.solved, attempted: st.attempted,
+        correct: st.correct, wrong: st.wrong, hints: st.hints, hardNoHint: st.hardNoHint, nick: st.nick
+      },
       updatedAt: new Date().toISOString()
     };
   }
@@ -80,7 +90,15 @@ const Board = (() => {
         try {
           const snap = await cRef.get();
           const st = hooks.getState();
-          const need = snap.exists ? hooks.mergeRemote(snap.data()) : (st.solved.length > 0 || st.score > 0 || !!st.nick);
+          let need;
+          if (snap.exists) {
+            const d = snap.data() || {};
+            bumpRecord(d.score, d.solvedCount);
+            const prog = d.progress && typeof d.progress === 'object' ? Object.assign({ nick: d.nick }, d.progress) : d;
+            need = hooks.mergeRemote(prog) || !d.progress;
+          } else {
+            need = st.solved.length > 0 || st.score > 0 || !!st.nick;
+          }
           if (need) claudeWrite();
         } catch (e) {}
       } else {
@@ -94,6 +112,8 @@ const Board = (() => {
           const x = d.data() || {};
           return { k: d.id, nick: cleanNick(x.nick), score: num(x.score, 5000), solved: num(x.solvedCount, TOTAL_Q) };
         });
+        const mine = S.rows.find(r => r.k === S.myKey);
+        if (mine) bumpRecord(mine.score, mine.solved);
         resolveNames();
         changed();
       }, () => { clearTimeout(timer); S.mode = 'off'; S.reason = 'error'; changed(); });
@@ -140,7 +160,11 @@ const Board = (() => {
   async function refreshCloud() {
     try {
       const r = await fetchRows();
-      if (r.status === 'ok') { S.rows = r.rows; S.loaded = true; S.reason = ''; }
+      if (r.status === 'ok') {
+        S.rows = r.rows; S.loaded = true; S.reason = '';
+        const mine = S.rows.find(x => x.k === S.myKey);
+        if (mine) bumpRecord(mine.score, mine.solved);
+      }
       else if (!S.loaded) { S.mode = 'off'; S.reason = r.status === 'not_configured' ? 'not_configured' : 'local'; }
     } catch (e) {
       if (!S.loaded) { S.mode = 'off'; S.reason = 'local'; }
@@ -158,7 +182,7 @@ const Board = (() => {
     S.canWrite = true;
     const st = hooks.getState();
     if (st.score > 0 || st.nick) cloudWrite();
-    setInterval(() => { if (document.visibilityState === 'visible') refreshCloud(); }, 30000);
+    setInterval(() => { if (document.visibilityState === 'visible' && hooks.isHome()) refreshCloud(); }, 60000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshCloud(); });
     changed();
   }
@@ -177,6 +201,10 @@ const Board = (() => {
           body: JSON.stringify({ id: cloudId, nick: st.nick, score: st.score, solved: st.solved.length, best: st.best })
         });
         if (res.status === 503) { S.canWrite = false; S.mode = 'off'; S.reason = 'not_configured'; changed(); }
+        else if (res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data && data.record) { bumpRecord(data.record.score, data.record.solved); changed(); }
+        }
       } catch (e) {}
       posting = false;
       if (postAgain) { postAgain = false; cloudWrite(); }
@@ -202,7 +230,11 @@ const Board = (() => {
     if (S.myKey && S.canWrite) {
       const st = hooks.getState();
       list = list.filter(r => r.k !== S.myKey);
-      list.push({ k: S.myKey, nick: st.nick, score: st.score, solved: st.solved.length });
+      list.push({
+        k: S.myKey, nick: st.nick,
+        score: Math.max(st.score, S.record.score),
+        solved: Math.max(st.solved.length, S.record.solved)
+      });
     }
     list = list.filter(r => r.score > 0);
     list.sort((a, b) => b.score - a.score || b.solved - a.solved);
@@ -220,5 +252,5 @@ const Board = (() => {
     return S.mode === 'cloud' ? 'שחקן/ית ' + r.k.slice(0, 4).toUpperCase() : 'שחקן/ית';
   }
 
-  return { init, submit, rows, myRank, displayName, state: S };
+  return { init, submit, rows, myRank, displayName, state: S, record: () => S.record };
 })();

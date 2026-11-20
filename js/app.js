@@ -596,7 +596,7 @@
     state.nick = nick;
     save();
     renderHome();
-    toast('ההתקדמות אופסה');
+    toast(Board.record().score > 0 ? 'ההתקדמות אופסה. השיא שלך נשאר בטבלה.' : 'ההתקדמות אופסה');
   });
 
   document.addEventListener('keydown', e => {
@@ -630,7 +630,12 @@
   applyTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light', false);
   applySound();
   renderHome();
-  Board.init({ getState: () => state, mergeRemote, onChange: () => { renderLeaderboard(); } });
+  Board.init({
+    getState: () => state,
+    mergeRemote,
+    onChange: () => { renderLeaderboard(); },
+    isHome: () => $('#home').classList.contains('active')
+  });
 
   // לבדיקות אוטומטיות בלבד
   window.__trivia = { get state() { return state; }, get current() { return current; }, get order() { return order; }, get busy() { return busy; } };
