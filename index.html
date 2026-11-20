@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F4F8F5">
+<meta name="description" content="מוח חד: 100 חידות היגיון קלאסיות בעברית, עם רמזים, הסברים מלאים, הישגים וטבלת מובילים.">
+<title>מוח חד: 100 חידות היגיון</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&icon_names=arrow_back,casino,check,close,dark_mode,emoji_events,grid_view,insights,light_mode,lightbulb,local_fire_department,military_tech,play_arrow,restart_alt,star,volume_off,volume_up&display=block" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script>
+  try { var t = localStorage.getItem('trivia-theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="bg-shapes" id="bgShapes" aria-hidden="true">
+  <svg class="bs bs1" viewBox="0 0 100 100"><path d="M100.2 50.0L100.0 51.7L99.3 53.4L98.2 55.1L96.8 56.6L95.3 58.0L93.7 59.3L92.2 60.5L91.0 61.7L89.9 63.0L89.3 64.3L88.9 65.7L88.9 67.3L89.1 69.1L89.5 71.0L89.8 73.0L90.1 75.1L90.2 77.1L90.0 79.0L89.4 80.8L88.5 82.3L87.2 83.5L85.5 84.3L83.7 84.9L81.6 85.1L79.6 85.2L77.5 85.2L75.6 85.2L73.8 85.3L72.3 85.6L70.9 86.2L69.7 87.1L68.7 88.3L67.7 89.8L66.7 91.4L65.7 93.2L64.6 95.0L63.4 96.6L62.0 97.9L60.4 98.9L58.7 99.4L57.0 99.5L55.2 99.1L53.4 98.4L51.7 97.3L50.0 96.0L48.4 94.7L47.0 93.4L45.5 92.4L44.2 91.6L42.7 91.2L41.3 91.1L39.7 91.3L38.0 91.8L36.2 92.5L34.3 93.2L32.3 93.9L30.3 94.3L28.3 94.4L26.5 94.1L24.9 93.5L23.5 92.4L22.4 91.0L21.5 89.2L20.9 87.3L20.4 85.2L20.1 83.2L19.8 81.3L19.4 79.6L18.8 78.1L18.0 76.9L16.9 75.9L15.5 75.0L13.9 74.3L12.1 73.7L10.2 73.0L8.2 72.2L6.4 71.2L4.9 70.1L3.6 68.7L2.8 67.2L2.5 65.4L2.5 63.6L3.0 61.7L3.7 59.8L4.7 58.0L5.7 56.2L6.7 54.6L7.5 53.0L8.0 51.5L8.2 50.0L8.0 48.5L7.5 47.0L6.7 45.4L5.7 43.8L4.7 42.0L3.7 40.2L3.0 38.3L2.5 36.4L2.5 34.6L2.8 32.8L3.6 31.3L4.9 29.9L6.4 28.8L8.2 27.8L10.2 27.0L12.1 26.3L13.9 25.7L15.5 25.0L16.9 24.1L18.0 23.1L18.8 21.9L19.4 20.4L19.8 18.7L20.1 16.8L20.4 14.8L20.9 12.7L21.5 10.8L22.4 9.0L23.5 7.6L24.9 6.5L26.5 5.9L28.3 5.6L30.3 5.7L32.3 6.1L34.3 6.8L36.2 7.5L38.0 8.2L39.7 8.7L41.3 8.9L42.7 8.8L44.2 8.4L45.5 7.6L47.0 6.6L48.4 5.3L50.0 4.0L51.7 2.7L53.4 1.6L55.2 0.9L57.0 0.5L58.7 0.6L60.4 1.1L62.0 2.1L63.4 3.4L64.6 5.0L65.7 6.8L66.7 8.6L67.7 10.2L68.7 11.7L69.7 12.9L70.9 13.8L72.3 14.4L73.8 14.7L75.6 14.8L77.5 14.8L79.6 14.8L81.6 14.9L83.7 15.1L85.5 15.7L87.2 16.5L88.5 17.7L89.4 19.2L90.0 21.0L90.2 22.9L90.1 24.9L89.8 27.0L89.5 29.0L89.1 30.9L88.9 32.7L88.9 34.3L89.3 35.7L89.9 37.0L91.0 38.3L92.2 39.5L93.7 40.7L95.3 42.0L96.8 43.4L98.2 44.9L99.3 46.6L100.0 48.3Z"/></svg>
+  <svg class="bs bs2" viewBox="0 0 100 100"><rect x="8" y="30" width="84" height="40" rx="20"/></svg>
+  <svg class="bs bs3" viewBox="0 0 100 100"><path d="M50 10 C58 10 92 70 88 80 C84 90 16 90 12 80 C8 70 42 10 50 10Z"/></svg>
+  <svg class="bs bs4" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/></svg>
+</div>
+
+<div class="app">
+
+  <!-- ================= HOME ================= -->
+  <main id="home" class="screen active" aria-label="מסך הבית">
+    <header class="top">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
+          <path class="mark-shape" d="M100.2 50.0L100.0 51.7L99.3 53.4L98.2 55.1L96.8 56.6L95.3 58.0L93.7 59.3L92.2 60.5L91.0 61.7L89.9 63.0L89.3 64.3L88.9 65.7L88.9 67.3L89.1 69.1L89.5 71.0L89.8 73.0L90.1 75.1L90.2 77.1L90.0 79.0L89.4 80.8L88.5 82.3L87.2 83.5L85.5 84.3L83.7 84.9L81.6 85.1L79.6 85.2L77.5 85.2L75.6 85.2L73.8 85.3L72.3 85.6L70.9 86.2L69.7 87.1L68.7 88.3L67.7 89.8L66.7 91.4L65.7 93.2L64.6 95.0L63.4 96.6L62.0 97.9L60.4 98.9L58.7 99.4L57.0 99.5L55.2 99.1L53.4 98.4L51.7 97.3L50.0 96.0L48.4 94.7L47.0 93.4L45.5 92.4L44.2 91.6L42.7 91.2L41.3 91.1L39.7 91.3L38.0 91.8L36.2 92.5L34.3 93.2L32.3 93.9L30.3 94.3L28.3 94.4L26.5 94.1L24.9 93.5L23.5 92.4L22.4 91.0L21.5 89.2L20.9 87.3L20.4 85.2L20.1 83.2L19.8 81.3L19.4 79.6L18.8 78.1L18.0 76.9L16.9 75.9L15.5 75.0L13.9 74.3L12.1 73.7L10.2 73.0L8.2 72.2L6.4 71.2L4.9 70.1L3.6 68.7L2.8 67.2L2.5 65.4L2.5 63.6L3.0 61.7L3.7 59.8L4.7 58.0L5.7 56.2L6.7 54.6L7.5 53.0L8.0 51.5L8.2 50.0L8.0 48.5L7.5 47.0L6.7 45.4L5.7 43.8L4.7 42.0L3.7 40.2L3.0 38.3L2.5 36.4L2.5 34.6L2.8 32.8L3.6 31.3L4.9 29.9L6.4 28.8L8.2 27.8L10.2 27.0L12.1 26.3L13.9 25.7L15.5 25.0L16.9 24.1L18.0 23.1L18.8 21.9L19.4 20.4L19.8 18.7L20.1 16.8L20.4 14.8L20.9 12.7L21.5 10.8L22.4 9.0L23.5 7.6L24.9 6.5L26.5 5.9L28.3 5.6L30.3 5.7L32.3 6.1L34.3 6.8L36.2 7.5L38.0 8.2L39.7 8.7L41.3 8.9L42.7 8.8L44.2 8.4L45.5 7.6L47.0 6.6L48.4 5.3L50.0 4.0L51.7 2.7L53.4 1.6L55.2 0.9L57.0 0.5L58.7 0.6L60.4 1.1L62.0 2.1L63.4 3.4L64.6 5.0L65.7 6.8L66.7 8.6L67.7 10.2L68.7 11.7L69.7 12.9L70.9 13.8L72.3 14.4L73.8 14.7L75.6 14.8L77.5 14.8L79.6 14.8L81.6 14.9L83.7 15.1L85.5 15.7L87.2 16.5L88.5 17.7L89.4 19.2L90.0 21.0L90.2 22.9L90.1 24.9L89.8 27.0L89.5 29.0L89.1 30.9L88.9 32.7L88.9 34.3L89.3 35.7L89.9 37.0L91.0 38.3L92.2 39.5L93.7 40.7L95.3 42.0L96.8 43.4L98.2 44.9L99.3 46.6L100.0 48.3Z"/>
+          <text x="50" y="52" text-anchor="middle" dominant-baseline="central">?</text>
+        </svg>
+        <div>
+          <h1>מוח חד</h1>
+          <p class="tagline">100 חידות היגיון קלאסיות. רמז כשצריך, הסבר מלא תמיד.</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="soundBtn" aria-label="השתקת צלילים" title="צלילים"><span class="msr" id="soundIcon">volume_up</span></button>
+        <button class="icon-btn" id="themeBtn" aria-label="מצב כהה" title="ערכת צבעים"><span class="msr" id="themeIcon">dark_mode</span></button>
+      </div>
+    </header>
+
+    <section class="hero" aria-label="ההתקדמות שלך">
+      <div class="ring-wrap">
+        <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="ring-track" cx="60" cy="60" r="52"/>
+          <circle class="ring-easy" cx="60" cy="60" r="52"/>
+          <circle class="ring-med" cx="60" cy="60" r="52"/>
+          <circle class="ring-hard" cx="60" cy="60" r="52"/>
+        </svg>
+        <div class="ring-label">
+          <strong id="progNum">0</strong>
+          <span>מתוך <span id="progTotal">100</span></span>
+        </div>
+      </div>
+      <div class="hero-side">
+        <div class="kpis">
+          <div class="kpi"><span class="msr fill">star</span><div><strong id="stScore">0</strong><span>ניקוד</span></div></div>
+          <div class="kpi"><span class="msr fill">local_fire_department</span><div><strong id="stStreak">0</strong><span>רצף נוכחי</span></div></div>
+          <div class="kpi"><span class="msr fill">emoji_events</span><div><strong id="stBest">0</strong><span>שיא רצף</span></div></div>
+        </div>
+        <div class="legend-row">
+          <span class="lg easy"><i></i>קל <b id="miniEasyT">0/30</b></span>
+          <span class="lg med"><i></i>בינוני <b id="miniMedT">0/40</b></span>
+          <span class="lg hard"><i></i>קשה <b id="miniHardT">0/30</b></span>
+        </div>
+        <p class="rank-line" id="rankLine"></p>
+      </div>
+    </section>
+
+    <section class="play-row" aria-label="התחלת משחק">
+      <div class="segmented" role="radiogroup" aria-label="רמת קושי" id="chips">
+        <button class="seg active" role="radio" aria-checked="true" data-f="הכל">הכל</button>
+        <button class="seg" role="radio" aria-checked="false" data-f="קל">קל</button>
+        <button class="seg" role="radio" aria-checked="false" data-f="בינוני">בינוני</button>
+        <button class="seg" role="radio" aria-checked="false" data-f="קשה">קשה</button>
+      </div>
+      <button class="fab" id="startBtn"><span class="msr fill">play_arrow</span><span id="startLabel">התחל לפתור</span></button>
+      <p class="done-note" id="doneNote">פתרת את כל החידות ברמה הזאת. אפשר לחזור עליהן לתרגול, בלי ניקוד.</p>
+    </section>
+
+    <section class="sheet" aria-label="מידע נוסף">
+      <nav class="tabs" role="tablist" id="tabs">
+        <button class="tab active" role="tab" aria-selected="true" data-tab="lb"><span class="msr">emoji_events</span><span>מובילים</span></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="ach"><span class="msr">military_tech</span><span>הישגים <b id="achCount"></b></span></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="me"><span class="msr">insights</span><span>הנתונים שלי</span></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="map"><span class="msr">grid_view</span><span>כל החידות</span></button>
+        <i class="tab-ind" id="tabInd" aria-hidden="true"></i>
+      </nav>
+
+      <div class="tab-body active" id="tab-lb" role="tabpanel">
+        <p class="note" id="lbNote">טוען את טבלת המובילים…</p>
+        <ol class="lb" id="lbList"></ol>
+        <form class="nick" id="nickForm" hidden>
+          <label for="nickInput">השם שלך בטבלה</label>
+          <div class="nick-row">
+            <input id="nickInput" maxlength="20" autocomplete="off" placeholder="למשל: שרלוק">
+            <button class="btn tonal" type="submit">שמור</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="tab-body" id="tab-ach" role="tabpanel"><div class="ach-grid" id="achGrid"></div></div>
+
+      <div class="tab-body" id="tab-me" role="tabpanel">
+        <div class="me-grid">
+          <div class="mestat"><strong id="meAcc">–</strong><span>אחוז דיוק</span></div>
+          <div class="mestat"><strong id="meOk">0</strong><span>תשובות נכונות</span></div>
+          <div class="mestat"><strong id="meBad">0</strong><span>טעויות</span></div>
+          <div class="mestat"><strong id="meHints">0</strong><span>רמזים</span></div>
+        </div>
+        <h3 class="sub">פתרת לפי קטגוריה</h3>
+        <div id="catList"></div>
+      </div>
+
+      <div class="tab-body" id="tab-map" role="tabpanel">
+        <div class="grid" id="grid"></div>
+        <p class="grid-legend">מספר מודגש = חידה שפתרת. הצבע מסמן את רמת הקושי.</p>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <button class="btn text danger" id="resetBtn"><span class="msr">restart_alt</span><span id="resetLabel">איפוס התקדמות</span></button>
+    </footer>
+  </main>
+
+  <!-- ================= PLAY ================= -->
+  <main id="play" class="screen" aria-label="חידה">
+    <header class="play-top">
+      <button class="icon-btn" id="backBtn" aria-label="חזרה לתפריט"><span class="msr flip">arrow_back</span></button>
+      <div class="chips">
+        <div class="chip-stat" id="hudScore"><span class="msr fill">star</span><b id="hScore">0</b></div>
+        <div class="chip-stat streak" id="hudStreak"><span class="msr fill">local_fire_department</span><b id="hStreak">0</b></div>
+      </div>
+      <button class="icon-btn" id="soundBtn2" aria-label="השתקת צלילים"><span class="msr" id="soundIcon2">volume_up</span></button>
+    </header>
+
+    <div class="stage" id="stage">
+      <div class="tilt" id="tilt">
+      <article class="card" id="card">
+        <div class="card-head">
+          <span class="diff" id="tDiff"></span>
+          <span class="cat" id="tCat"></span>
+          <span class="num" id="tId"></span>
+          <span class="pts" id="tPts"></span>
+        </div>
+
+        <h2 class="question" id="question"></h2>
+
+        <div class="hint-area">
+          <button class="btn outline hint-btn" id="hintBtn"><span class="msr">lightbulb</span><span id="hintLabel">רמז</span><small id="hintCost"></small></button>
+          <div class="reveal" id="hintWrap"><div><p class="hint-box" id="hintText"></p></div></div>
+        </div>
+
+        <div class="options" id="options" role="group" aria-label="תשובות"></div>
+
+        <div class="reveal" id="fbWrap"><div>
+          <section class="feedback" id="feedback" aria-live="polite">
+            <div class="fb-head">
+              <span class="fb-icon msr fill" id="fbIcon">check</span>
+              <div>
+                <h3 id="fbTitle"></h3>
+                <p id="fbSub"></p>
+              </div>
+            </div>
+            <h4>ההסבר המלא</h4>
+            <p class="exp" id="fbExp"></p>
+            <button class="btn filled next-btn" id="nextBtn">לחידה הבאה</button>
+          </section>
+        </div></div>
+      </article>
+      </div>
+    </div>
+
+    <div class="play-bottom">
+      <button class="btn text" id="skipBtn"><span class="msr">casino</span>דלג לחידה אקראית</button>
+    </div>
+    <p class="kbd">מקלדת: 1 עד 4 לבחירת תשובה, H לרמז, Enter להמשך, S לדילוג</p>
+  </main>
+</div>
+
+<div class="snackbar" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/puzzles.js" defer></script>
+<script src="js/fx.js" defer></script>
+<script src="js/board.js" defer></script>
+<script src="js/app.js" defer></script>
+</body>
+</html>
